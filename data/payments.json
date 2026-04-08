@@ -1,0 +1,10 @@
+[{
+    "id": "1",
+    "po": "2",
+    "supplier": "Coca-Cola",
+    "amount": 4500,
+    "date": "2026-04-04",
+    "method": "Cash",
+    "status": "Paid",
+    "balance": 0
+}]
