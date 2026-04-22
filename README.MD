@@ -1,18 +1,18 @@
 ﻿# SPOMS - Supplier and Purchase Order Management System
 
 Members
-Dennis Lopez Jr
-John Lester Poquita
-Angel Rose Cepe
-Jennifer Urboda
+-Dennis Lopez Jr
+-John Lester Poquita
+-Angel Rose Cepe
+-Jennifer Urboda
 
 A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using JSON storage.
 
 ## Accounts
-Admin - Username: dennis, Password: lopez
-Purchasing Officer - Username: jani, Pasword: jani
-Finance Officer - Username: angel, Password: angel
-Store owner - Username: jennifer, Password:jennifer
+-Admin - Username: dennis, Password: lopez
+-Purchasing Officer - Username: jani, Pasword: jani
+-Finance Officer - Username: angel, Password: angel
+-Store owner - Username: jennifer, Password:jennifer
 
 ## Project Modules
 
