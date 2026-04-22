@@ -1,5 +1,11 @@
 ﻿# SPOMS - Supplier and Purchase Order Management System
 
+Members
+Dennis Lopez Jr
+John Lester Poquita
+Angel Rose Cepe
+Jennifer Urboda
+
 A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using JSON storage.
 
 ## Project Modules

@@ -83,38 +83,7 @@ def normalize_user_passwords(users):
             changed = True
     return changed
 
-def init_demo():
-    users = [
-        {'user_id': 'U1', 'name': 'Dennis Jr. Lopez', 'username': 'dennis', 'password': hash_pwd('lopez'), 'role': 'Administrator', 'status': 'Active'},
-        {'user_id': 'U2', 'name': 'John Lester Poquita', 'username': 'jani', 'password': hash_pwd('jani'), 'role': 'Purchasing Officer', 'status': 'Active'}
-    ]
-    suppliers = [
-        {'id': 'S1', 'name': 'ACME Corp', 'contact': 'Alice', 'email': 'a@acme.com', 'phone': '111-1111', 'address': '123 St', 'status': 'Active'},
-        {'id': 'S2', 'name': 'Global Ltd', 'contact': 'Bob', 'email': 'b@global.com', 'phone': '222-2222', 'address': '456 Ave', 'status': 'Active'},
-        {'id': 'S3', 'name': 'Tech Inc', 'contact': 'Carol', 'email': 'c@tech.com', 'phone': '333-3333', 'address': '789 Blvd', 'status': 'Active'}
-    ]
-    orders = [
-        {'po': 'PO001', 'supplier': 'ACME Corp', 'item': 'Bearings', 'qty': 5, 'price': 250, 'total': 1250, 'date': '2026-03-01', 'delivery': '2026-03-10', 'status': 'Delivered'},
-        {'po': 'PO002', 'supplier': 'Global Ltd', 'item': 'Sheets', 'qty': 2, 'price': 500, 'total': 1000, 'date': '2026-03-05', 'delivery': '2026-03-15', 'status': 'Pending'},
-        {'po': 'PO003', 'supplier': 'Tech Inc', 'item': 'Boards', 'qty': 10, 'price': 125, 'total': 1250, 'date': '2026-03-08', 'delivery': '2026-03-20', 'status': 'Approved'}
-    ]
-    payments = [
-        {'id': 'PAY001', 'po': 'PO001', 'supplier': 'ACME Corp', 'amount': 1250, 'date': '2026-03-05', 'method': 'Bank', 'status': 'Paid'},
-        {'id': 'PAY002', 'po': 'PO002', 'supplier': 'Global Ltd', 'amount': 1000, 'date': '2026-03-08', 'method': 'Check', 'status': 'Pending'}
-    ]
-    
-    if not os.path.exists('data/users.json'):
-        save_json('users.json', users)
-    if not os.path.exists('data/suppliers.json'):
-        save_json('suppliers.json', suppliers)
-    if not os.path.exists('data/orders.json'):
-        save_json('orders.json', orders)
-    if not os.path.exists('data/payments.json'):
-        save_json('payments.json', payments)
-    if not os.path.exists('data/settings.json'):
-        save_json('settings.json', default_settings())
 
-init_demo()
 
 # ===== DECORATORS =====
 def login_required(f):
@@ -163,6 +132,7 @@ def role_check(roles):
             return f(*args, **kwargs)
         return decorated
     return decorator
+
 
 # ===== MGA ROUTES =====
 @app.route('/')

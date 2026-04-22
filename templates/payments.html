@@ -55,13 +55,16 @@
             </div>
             <div class="form-group">
                 <label>PO # *</label>
-                <select id="po" required onchange="populateOrderDetails()">
-                    <option value="">Select...</option>
-                </select>
+                <input type="text" id="po" list="poList" required onchange="populateOrderDetails()">
+                <datalist id="poList"></datalist>
             </div>
             <div class="form-group">
                 <label>Supplier</label>
                 <input type="text" id="supplier" readonly style="background: #f9fafb;">
+            </div>
+            <div class="form-group">
+                <label>Item</label>
+                <input type="text" id="item" readonly style="background: #f9fafb;">
             </div>
             <div class="form-group">
                 <label>Total Amount</label>
@@ -134,7 +137,7 @@
     function loadOrders() {
         fetch('/api/orders').then(r => r.json()).then(data => {
             ordersData = data; // Store for later use
-            document.getElementById('po').innerHTML = '<option value="">Select...</option>' +
+            document.getElementById('poList').innerHTML =
                 data.map(o => `<option value="${o.po}">${o.po} - ${o.supplier}</option>`).join('');
         });
     }
@@ -142,6 +145,7 @@
     function populateOrderDetails() {
         const selectedPO = document.getElementById('po').value;
         const supplierField = document.getElementById('supplier');
+        const itemField = document.getElementById('item');
         const totalAmountField = document.getElementById('totalAmount');
         
         if (selectedPO) {
@@ -149,11 +153,13 @@
             const selectedOrder = ordersData.find(order => order.po === selectedPO);
             if (selectedOrder) {
                 supplierField.value = selectedOrder.supplier;
+                itemField.value = selectedOrder.item;
                 totalAmountField.value = '₱' + selectedOrder.total.toFixed(2);
             }
         } else {
             // Clear fields if no PO selected
             supplierField.value = '';
+            itemField.value = '';
             totalAmountField.value = '';
         }
     }
@@ -206,6 +212,7 @@
         document.getElementById('paymentId').value = '';
         document.getElementById('po').value = '';
         document.getElementById('supplier').value = '';
+        document.getElementById('item').value = '';
         document.getElementById('totalAmount').value = '';
         document.getElementById('amount').value = '';
         document.getElementById('method').value = 'Bank Transfer';
