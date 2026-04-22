@@ -8,6 +8,12 @@ Jennifer Urboda
 
 A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using JSON storage.
 
+## Accounts
+Admin - Username: dennis, Password: lopez
+Purchasing Officer - Username: jani, Pasword: jani
+Finance Officer - Username: angel, Password: angel
+Store owner - Username: jennifer, Password:jennifer
+
 ## Project Modules
 
 ### Module 1: Supplier Management
@@ -116,3 +122,6 @@ http://127.0.0.1:5000
 - Data is stored in JSON files under `data/`.
 - The current code does not include a dedicated product/item master module; product details are entered directly on purchase orders.
 - Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
+
+
+Currently developing the live web.
