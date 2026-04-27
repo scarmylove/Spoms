@@ -1,339 +1,128 @@
 ﻿# SPOMS - Supplier and Purchase Order Management System
 
-A comprehensive Flask-based management system designed to streamline supplier relationships, purchase order processing, payment tracking, and business intelligence through intuitive dashboards and real-time reporting.
+## Members
 
-## 👥 Team
+- Dennis Lopez Jr
+- John Lester Poquita
+- Angel Rose Cepe
+- Jennifer Urboda
 
-- **Dennis Lopez Jr** - Admin
-- **John Lester Poquita** - Purchasing Officer
-- **Angel Rose Cepe** - Finance Officer
-- **Jennifer Urboda** - Store Owner
+A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using JSON storage.
 
-## 📋 Table of Contents
+## Accounts
 
-- [Features](#features)
-- [Team](#team)
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [Project Architecture](#project-architecture)
-- [API Endpoints](#api-endpoints)
-- [User Accounts](#user-accounts)
-- [Data Storage](#data-storage)
-- [Deployment](#deployment)
-- [Technologies Used](#technologies-used)
+- **Admin** - Username: dennis, Password: lopez
+- **Purchasing Officer** - Username: jani, Pasword: jani
+- **Finance Officer** - Username: angel, Password: angel
+- **Store owner** - Username: jennifer, Password: jennifer
 
-## ✨ Features
+## Project Modules
 
-### 🏢 Supplier Management
-- Add, view, update, and delete suppliers
-- Search suppliers by name and status
-- Track supplier details and contact information
-- Monitor supplier performance
+### Module 1: Supplier Management
 
-### 📦 Purchase Order Management
-- Create and manage purchase orders
-- Select suppliers from existing inventory
-- Add products with quantities and unit prices
-- Automatic calculation of subtotals and totals
-- Track order status (Pending, Approved, Delivered, Cancelled)
-- Monitor delivery dates
+This module is implemented and functional in the current code.
 
-### 💰 Payment Processing
-- Record supplier payments
-- Support multiple payment methods (Bank Transfer, Check, Cash)
-- Track payment status (Pending, Partial, Paid)
-- View complete payment history
-- Match payments to purchase orders
+**Features:**
+- Add new supplier
+- View supplier list
+- Update supplier information
+- Delete supplier
+- Search suppliers by text and status
+- Display supplier details in the supplier list
 
-### 📊 Reporting & Analytics
-- Comprehensive purchase order reports
-- Orders grouped by status with visual summaries
-- Payment status tracking
-- Delivery metrics
-- Feedback management
-- Export and analyze business data
+**How it works:**
+- The `suppliers` route loads supplier data from `data/suppliers.json`.
+- `templates/suppliers.html` provides a searchable table and modal form for add/edit.
+- The API endpoints `/api/suppliers` and `/api/suppliers/<sid>` handle create, update, and delete actions.
 
-### 👥 User Management
-- Role-based access control
-- Multiple user roles (Admin, Purchasing Officer, Finance Officer, Store Owner)
-- Secure authentication
-- User profile management
+### Module 2: Purchase Order Management
 
-### 🎨 Dashboard
-- Intuitive web-based interface
-- Real-time data visualization
-- Responsive design
-- Easy navigation
+This module is implemented and functional in the current code.
 
-## 🚀 Getting Started
+**Features:**
+- Create new purchase order
+- Select supplier from existing suppliers
+- Add product/item and quantity
+- Enter unit price
+- Automatically compute subtotal and total
+- Update order details/status
+- Cancel purchase order via status field
+- Track order status as Pending, Approved, Delivered, or Cancelled
 
-### Prerequisites
+**How it works:**
+- The `orders` route loads data from `data/orders.json` and supplier names from `data/suppliers.json`.
+- `templates/purchase_orders.html` provides a creation modal, order table, search, and status update interface.
+- The API endpoints `/api/orders` and `/api/orders/<po_number>` handle order creation and updating.
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- MongoDB (optional - for database version)
-- Git
+### Module 3: Delivery and Receiving
 
-### Installation
+This module is partially implemented through order status management.
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Spoms
-   ```
+**Implemented behavior:**
+- Delivered items are tracked by the order `status` field.
+- The `delivery` field records the expected or actual delivery date.
+- Order completion is verified by setting status to `Delivered`.
+- Delivery status can be updated through the order status edit workflow.
 
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   ```
+**Note:**
+- There is no separate dedicated delivery-only route or receiving form in the current code.
+- Delivery handling is currently integrated into purchase order status updates.
 
-3. **Activate the virtual environment:**
-   
-   On Windows:
+### Module 4: Payment Method Management
+
+This module is implemented and functional in the current code.
+
+**Features:**
+- Record supplier payment
+- Select payment method (`Bank Transfer`, `Check`, `Cash`)
+- Update payment status (`Pending`, `Partial`, `Paid`)
+- View payment history and status in a searchable table
+
+**How it works:**
+- The `payments` route loads data from `data/payments.json` and existing purchase orders from `data/orders.json`.
+- `templates/payments.html` provides a payment-record modal, order selection, auto-fill supplier/total amount, and status editing.
+- The API endpoints `/api/payments` and `/api/payments/<payment_id>` handle payment create and status updates.
+
+### Module 5: Reporting
+
+This module is implemented and functional in the current code.
+
+**Features:**
+- Purchase order reporting
+- Displays orders grouped by status
+- Summarizes totals for pending, delivered, and approved orders
+- Excludes cancelled orders from the main purchase order report table
+
+**How it works:**
+- The `reports` route loads orders, payments, suppliers, and feedback data.
+- `templates/reports.html` renders a report table and summary metrics derived from current order data.
+
+## Usage
+
+1. Run the app:
+
    ```powershell
-   .\venv\Scripts\Activate.ps1
-   ```
-   
-   On macOS/Linux:
-   ```bash
-   source venv/bin/activate
-   ```
-
-4. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Configuration
-
-1. **Environment Variables:**
-   Create a `.env` file in the root directory (optional for local development):
-   ```
-   FLASK_ENV=development
-   FLASK_DEBUG=True
-   MONGODB_URI=your_mongodb_connection_string
-   ```
-
-2. **Data Directory:**
-   The application automatically creates a `data/` directory for JSON storage:
-   ```
-   data/
-   ├── users.json
-   ├── suppliers.json
-   ├── orders.json
-   ├── payments.json
-   ├── feedback.json
-   └── settings.json
-   ```
-
-### Running the Application
-
-1. **Start the Flask development server:**
-   ```bash
    python app.py
    ```
 
-2. **Access the application:**
-   Open your web browser and navigate to:
-   ```
+2. Open this URL in your browser:
+
+   ```text
    http://127.0.0.1:5000
    ```
 
-3. **Login with demo credentials:**
-   - **Admin**: dennis / lopez
-   - **Purchasing Officer**: jani / jani
-   - **Finance Officer**: angel / angel
-   - **Store Owner**: jennifer / jennifer
+3. Login with demo credentials or add new users manually in `data/users.json`.
 
-## 🏗️ Project Architecture
+4. Use the navigation menu to access:
+   - Suppliers
+   - Purchase Orders
+   - Payments
+   - Reports
 
-### Directory Structure
+## Notes
 
-```
-Spoms/
-├── app.py                  # Main Flask application
-├── config.py              # Configuration settings
-├── database.py            # Database/data access layer
-├── init_db.py             # Database initialization
-├── requirements.txt       # Python dependencies
-├── vercel.json           # Vercel deployment config
-├── DEPLOYMENT_GUIDE.md   # Deployment instructions
-├── QUICKSTART.md         # Quick start guide
-├── DEPLOYMENT_CHECKLIST.md # Pre-deployment checklist
-│
-├── data/                 # JSON data storage
-│   ├── users.json
-│   ├── suppliers.json
-│   ├── orders.json
-│   ├── payments.json
-│   ├── feedback.json
-│   └── settings.json
-│
-├── static/               # Static assets
-│   ├── css/             # Stylesheets
-│   │   ├── style.css
-│   │   ├── auth.css
-│   │   ├── dashboard.css
-│   │   └── homepage.css
-│   ├── js/              # JavaScript files
-│   │   ├── app.js
-│   │   ├── charts.js
-│   │   ├── payments.js
-│   │   ├── purchase_orders.js
-│   │   ├── suppliers.js
-│   │   ├── users.js
-│   │   └── animations.js
-│   └── images/          # Images and logos
-│
-└── templates/            # HTML templates
-    ├── base.html
-    ├── index.html
-    ├── login.html
-    ├── dashboard.html
-    ├── suppliers.html
-    ├── purchase_orders.html
-    ├── payments.html
-    ├── reports.html
-    ├── profile.html
-    ├── feedback.html
-    ├── settings.html
-    ├── users.html
-    ├── orders.html
-    └── backup.html
-```
+- Data is stored in JSON files under `data/`.
+- The current code does not include a dedicated product/item master module; product details are entered directly on purchase orders.
+- Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
 
-### Core Modules
-
-#### Module 1: Supplier Management
-- **Route**: `/suppliers`
-- **Template**: `templates/suppliers.html`
-- **Data**: `data/suppliers.json`
-- **API Endpoints**:
-  - `GET /api/suppliers` - Retrieve all suppliers
-  - `POST /api/suppliers` - Create new supplier
-  - `PUT /api/suppliers/<sid>` - Update supplier
-  - `DELETE /api/suppliers/<sid>` - Delete supplier
-
-#### Module 2: Purchase Order Management
-- **Route**: `/orders`
-- **Template**: `templates/purchase_orders.html`
-- **Data**: `data/orders.json`
-- **API Endpoints**:
-  - `GET /api/orders` - Retrieve all orders
-  - `POST /api/orders` - Create new order
-  - `PUT /api/orders/<po_number>` - Update order
-- **Features**: Status tracking (Pending, Approved, Delivered, Cancelled), automatic calculations
-
-#### Module 3: Payment Processing
-- **Route**: `/payments`
-- **Template**: `templates/payments.html`
-- **Data**: `data/payments.json`
-- **API Endpoints**:
-  - `GET /api/payments` - Retrieve all payments
-  - `POST /api/payments` - Record payment
-  - `PUT /api/payments/<payment_id>` - Update payment status
-- **Payment Methods**: Bank Transfer, Check, Cash
-- **Status Tracking**: Pending, Partial, Paid
-
-#### Module 4: Reporting & Analytics
-- **Route**: `/reports`
-- **Template**: `templates/reports.html`
-- **Data Source**: Aggregated from orders, payments, and suppliers
-- **Reports**:
-  - Purchase order summary by status
-  - Payment status overview
-  - Supplier performance metrics
-  - Delivery tracking
-
-#### Module 5: User Management
-- **Route**: `/users`
-- **Template**: `templates/users.html`
-- **Data**: `data/users.json`
-- **Features**: Role-based access, profile management
-
-## 📡 API Endpoints
-
-### Authentication
-- `POST /login` - User login
-- `GET /logout` - User logout
-- `GET /profile` - User profile
-
-### Suppliers
-- `GET /api/suppliers` - List all suppliers
-- `POST /api/suppliers` - Create supplier
-- `PUT /api/suppliers/<sid>` - Update supplier
-- `DELETE /api/suppliers/<sid>` - Delete supplier
-
-### Purchase Orders
-- `GET /api/orders` - List all orders
-- `POST /api/orders` - Create order
-- `PUT /api/orders/<po_number>` - Update order
-
-### Payments
-- `GET /api/payments` - List all payments
-- `POST /api/payments` - Record payment
-- `PUT /api/payments/<payment_id>` - Update payment status
-
-### Reports
-- `GET /reports` - View reports
-
-## 👤 User Accounts
-
-The system includes four pre-configured user accounts:
-
-| Role | Username | Password | Permissions |
-|------|----------|----------|-------------|
-| Admin | dennis | lopez | Full system access |
-| Purchasing Officer | jani | jani | Create/manage orders |
-| Finance Officer | angel | angel | Payment management |
-| Store Owner | jennifer | jennifer | Inventory access |
-
-**To add new users**: Edit `data/users.json` directly or use the user management interface.
-
-## 💾 Data Storage
-
-The application uses JSON files for data persistence:
-
-- **users.json**: User accounts and authentication
-- **suppliers.json**: Supplier information
-- **orders.json**: Purchase order records
-- **payments.json**: Payment transactions
-- **feedback.json**: Customer feedback
-- **settings.json**: System configuration
-
-All data is automatically loaded/saved in the `data/` directory.
-
-## 🚀 Deployment
-
-For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
-
-### Quick Deployment Options
-
-- **Vercel**: Configuration included in `vercel.json`
-- **Docker**: Standard Python/Flask containerization
-- **Traditional Server**: Python with Gunicorn or similar WSGI server
-
-### Pre-Deployment Checklist
-
-Review [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) before deploying to production.
-
-## 🛠️ Technologies Used
-
-- **Backend**: Flask 2.3.3
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Database**: JSON (local), MongoDB (optional)
-- **Server**: Gunicorn
-- **Authentication**: SHA-256 password hashing
-- **Environment Management**: python-dotenv
-- **ORM**: PyMongo (optional)
-
-## 📝 Additional Resources
-
-- [Quick Start Guide](QUICKSTART.md)
-- [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [Change Log](CHANGES.md)
-- [Deployment Checklist](DEPLOYMENT_CHECKLIST.md)
-
-
+Currently developing the live web.
