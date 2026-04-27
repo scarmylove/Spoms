@@ -42,69 +42,70 @@
         </table>
     </div>
 
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Record Payment</h2>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Payment</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form class="form" onsubmit="addPayment(event)">
+                <div class="form-group">
+                    <label>Payment ID *</label>
+                    <input type="text" id="paymentId" required>
+                </div>
+                <div class="form-group">
+                    <label>PO # *</label>
+                    <input type="text" id="po" list="poList" required onchange="populateOrderDetails()">
+                    <datalist id="poList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>Supplier</label>
+                    <input type="text" id="supplier" readonly style="background: #f9fafb;">
+                </div>
+                <div class="form-group">
+                    <label>Item</label>
+                    <input type="text" id="item" readonly style="background: #f9fafb;">
+                </div>
+                <div class="form-group">
+                    <label>Total Amount</label>
+                    <input type="text" id="totalAmount" readonly style="background: #f9fafb;">
+                </div>
+                <div class="form-group">
+                    <label>Amount to Pay *</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Method *</label>
+                    <select id="method" required>
+                        <option>Bank Transfer</option>
+                        <option>Check</option>
+                        <option>Cash</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Record</button>
+            </form>
         </div>
-        <form class="form" onsubmit="addPayment(event)">
-            <div class="form-group">
-                <label>Payment ID *</label>
-                <input type="text" id="paymentId" required>
-            </div>
-            <div class="form-group">
-                <label>PO # *</label>
-                <input type="text" id="po" list="poList" required onchange="populateOrderDetails()">
-                <datalist id="poList"></datalist>
-            </div>
-            <div class="form-group">
-                <label>Supplier</label>
-                <input type="text" id="supplier" readonly style="background: #f9fafb;">
-            </div>
-            <div class="form-group">
-                <label>Item</label>
-                <input type="text" id="item" readonly style="background: #f9fafb;">
-            </div>
-            <div class="form-group">
-                <label>Total Amount</label>
-                <input type="text" id="totalAmount" readonly style="background: #f9fafb;">
-            </div>
-            <div class="form-group">
-                <label>Amount to Pay *</label>
-                <input type="number" id="amount" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label>Method *</label>
-                <select id="method" required>
-                    <option>Bank Transfer</option>
-                    <option>Check</option>
-                    <option>Cash</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Record</button>
-        </form>
     </div>
-</div>
 
-<div class="modal" id="editModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Edit Payment Status</h2>
-            <button class="modal-close" onclick="closeEditModal()">&times;</button>
-        </div>
-        <form class="form" onsubmit="updateStatus(event)">
-            <input type="hidden" id="editPaymentId">
-            <div class="form-group">
-                <label>Status *</label>
-                <select id="editStatus" required>
-                    <option value="Pending">Pending</option>
-                    <option value="Partial">Partial</option>
-                    <option value="Paid">Paid</option>
-                </select>
+        <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Payment Status</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
             </div>
-            <button type="submit" class="btn btn-primary">Update Status</button>
-        </form>
+            <form class="form" onsubmit="updateStatus(event)">
+                <input type="hidden" id="editPaymentId">
+                <div class="form-group">
+                    <label>Status *</label>
+                    <select id="editStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Partial">Partial</option>
+                        <option value="Paid">Paid</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -297,4 +298,31 @@
     loadOrders();
     loadPayments();
 </script>
+
+<style>
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: capitalize;
+    }
+    
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-badge.partial {
+        background: #fcd34d;
+        color: #78350f;
+    }
+    
+    .status-badge.paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+</style>
+
 {% endblock %}

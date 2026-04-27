@@ -4,10 +4,12 @@
     <h1><i class="fas fa-users"></i> Users</h1>
 </div>
 
-<button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add User</button>
+<div style="margin-top: 20px;">
+    <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add User</button>
+</div>
 
 <div class="table-container" style="margin-top: 20px;">
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th>ID</th>
@@ -20,17 +22,17 @@
         </thead>
         <tbody>
             {% for user in users %}
-            <tr id="user-{{ user.user_id }}">
-                <td>{{ user.user_id }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.username }}</td>
-                <td><span class="badge active">{{ user.role }}</span></td>
-                <td>{{ user.status }}</td>
-                <td>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="openEditModal('{{ user.user_id }}')">Edit</button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('{{ user.user_id }}')">Delete</button>
-                </td>
-            </tr>
+                <tr id="user-{{ user.user_id }}">
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.username }}</td>
+                    <td><span class="badge active">{{ user.role }}</span></td>
+                    <td>{{ user.status }}</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="openEditModal('{{ user.user_id }}')">Edit</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteUser('{{ user.user_id }}')">Delete</button>
+                    </td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>
