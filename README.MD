@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 ﻿# SPOMS - Supplier and Purchase Order Management System
 =======
 # SPOMS - Supplier and Purchase Order Management System
->>>>>>> fa2d02ef72d347ed66575809b46509ff179f840c
+
 
 ## Members
 
@@ -129,8 +129,4 @@ This module is implemented and functional in the current code.
 - The current code does not include a dedicated product/item master module; product details are entered directly on purchase orders.
 - Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
 
-Currently developing the live web.
-<<<<<<< HEAD
-okey nani sir
-=======
->>>>>>> fa2d02ef72d347ed66575809b46509ff179f840c
+this system is live na sir and can be access in vercel sir
