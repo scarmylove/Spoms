@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿# SPOMS - Supplier and Purchase Order Management System
+=======
+# SPOMS - Supplier and Purchase Order Management System
+>>>>>>> fa2d02ef72d347ed66575809b46509ff179f840c
 
 ## Members
 
@@ -126,4 +130,7 @@ This module is implemented and functional in the current code.
 - Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
 
 Currently developing the live web.
+<<<<<<< HEAD
 okey nani sir
+=======
+>>>>>>> fa2d02ef72d347ed66575809b46509ff179f840c

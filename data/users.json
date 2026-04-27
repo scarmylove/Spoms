@@ -1,0 +1,38 @@
+[
+    {
+        "user_id": "U1",
+        "name": "Dennis Jr. Lopez",
+        "username": "dennis",
+        "password": "0e66633604475ead7445c5e5f987d6450c23687eccf37665e3924541a7f8f6b3",
+        "role": "Administrator",
+        "status": "Active",
+        "profile_picture": "images/profile-U1-1775277467.jpeg"
+    },
+    {
+        "name": "John Lester Poquita",
+        "username": "jani",
+        "role": "Purchasing Officer",
+        "status": "Active",
+        "password": "dd8a3af07bf0ed457e80ebfa07a8d2a7d834bb30aaee2cbf97d3b6120e6238b8",
+        "user_id": "U02",
+        "profile_picture": "images/profile-U02-1775278186.jpeg"
+    },
+    {
+        "name": "Angel Rose Cepe",
+        "username": "angel",
+        "role": "Finance Officer",
+        "status": "Active",
+        "password": "519ba91a5a5b4afb9dc66f8805ce8c442b6576316c19c6896af2fa9bda6aff71",
+        "user_id": "U03",
+        "profile_picture": "images/profile-U03-1775278254.jpg"
+    },
+    {
+        "name": "Jennifer Urboda",
+        "username": "jennifer",
+        "role": "Store Owner",
+        "status": "Active",
+        "password": "9ce8db922a8f4a7abd859adee70bd8b7a63321265487da54cf4bed6a69eb3e1b",
+        "user_id": "U04",
+        "profile_picture": "images/profile-U04-1775278157.jpeg"
+    }
+]
