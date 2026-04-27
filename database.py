@@ -36,30 +36,33 @@ class MongoDatabase:
     @classmethod
     def _create_indexes(cls):
         """Create database indexes for better query performance"""
-        db = cls._db
-        
-        # Users indexes
-        db['users'].create_index([('username', ASCENDING)], unique=True)
-        db['users'].create_index([('name', ASCENDING)])
-        
-        # Suppliers indexes
-        db['suppliers'].create_index([('name', ASCENDING)])
-        db['suppliers'].create_index([('status', ASCENDING)])
-        
-        # Orders indexes
-        db['orders'].create_index([('po_number', ASCENDING)], unique=True)
-        db['orders'].create_index([('status', ASCENDING)])
-        db['orders'].create_index([('supplier_id', ASCENDING)])
-        
-        # Payments indexes
-        db['payments'].create_index([('payment_id', ASCENDING)], unique=True)
-        db['payments'].create_index([('status', ASCENDING)])
-        db['payments'].create_index([('po_number', ASCENDING)])
-        
-        # Feedback indexes
-        db['feedback'].create_index([('date', DESCENDING)])
-        
-        logger.info("Database indexes created")
+        try:
+            db = cls._db
+            
+            # Users indexes
+            db['users'].create_index([('username', ASCENDING)], unique=True)
+            db['users'].create_index([('name', ASCENDING)])
+            
+            # Suppliers indexes
+            db['suppliers'].create_index([('name', ASCENDING)])
+            db['suppliers'].create_index([('status', ASCENDING)])
+            
+            # Orders indexes
+            db['orders'].create_index([('po_number', ASCENDING)])
+            db['orders'].create_index([('status', ASCENDING)])
+            db['orders'].create_index([('supplier', ASCENDING)])
+            
+            # Payments indexes
+            db['payments'].create_index([('id', ASCENDING)])
+            db['payments'].create_index([('status', ASCENDING)])
+            db['payments'].create_index([('po_number', ASCENDING)])
+            
+            # Feedback indexes
+            db['feedback'].create_index([('date', DESCENDING)])
+            
+            logger.info("Database indexes created")
+        except Exception as e:
+            logger.warning(f"Index creation warning: {e}")
 
 
 # Database operation functions
@@ -89,6 +92,17 @@ def save_document(collection_name, data):
         raise
 
 
+def find_document(collection_name, query):
+    """Find a single document"""
+    try:
+        db = get_db()
+        doc = db[collection_name].find_one(query, {'_id': 0})
+        return doc
+    except Exception as e:
+        logger.error(f"Error finding document in {collection_name}: {e}")
+        return None
+
+
 def update_document(collection_name, query, data):
     """Update a single document"""
     try:
@@ -97,6 +111,17 @@ def update_document(collection_name, query, data):
         return result.modified_count
     except Exception as e:
         logger.error(f"Error updating {collection_name}: {e}")
+        raise
+
+
+def delete_document(collection_name, query):
+    """Delete a single document"""
+    try:
+        db = get_db()
+        result = db[collection_name].delete_one(query)
+        return result.deleted_count
+    except Exception as e:
+        logger.error(f"Error deleting from {collection_name}: {e}")
         raise
 
 
