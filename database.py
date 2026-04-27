@@ -1,5 +1,5 @@
-from pymongo import MongoClient, ASCENDING, DESCENDING
-from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
+from pymongo import MongoClient, ASCENDING, DESCENDING  # type: ignore
+from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure  # type: ignore
 import os
 from dotenv import load_dotenv
 import logging
