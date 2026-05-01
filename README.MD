@@ -1,20 +1,60 @@
-﻿# SPOMS - Supplier and Purchase Order Management System
+# SPOMS - Supplier and Purchase Order Management System
 
-## Members
+A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using Firebase Firestore. We connected it to firebase in order to have a database and to make our system more useful and accessable.
+
+## Team Members
 
 - Dennis Lopez Jr
 - John Lester Poquita
 - Angel Rose Cepe
 - Jennifer Urboda
 
-A Flask-based Supplier and Purchase Order Management System built to manage suppliers, purchase orders, payments, and reports using JSON storage.
+## Getting Started
 
-## Accounts
+### Prerequisites
 
-- **Admin** - Username: dennis, Password: lopez
-- **Purchasing Officer** - Username: jani, Pasword: jani
-- **Finance Officer** - Username: angel, Password: angel
-- **Store owner** - Username: jennifer, Password: jennifer
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Installation
+
+1. Clone or download the project to your local machine.
+
+2. Create a virtual environment:
+
+   ```powershell
+   python -m venv .venv
+   ```
+
+3. Activate the virtual environment:
+
+   ```powershell
+   .venv\Scripts\activate
+   ```
+
+4. Install dependencies:
+
+   ```powershell
+   pip install -r requirements.txt
+   ```
+
+5. Set up Firebase Firestore:
+
+   ```powershell
+   python setup_firestore.py
+   ```
+
+## Default User Accounts
+
+Use these credentials to log in:
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | dennis | lopez |
+| Admin | reyGodmalin | reyGodmalin |
+| Purchasing Officer | jani | jani |
+| Finance Officer | angel | angel |
+| Store Owner | jennifer | jennifer |
 
 ## Project Modules
 
@@ -31,7 +71,7 @@ This module is implemented and functional in the current code.
 - Display supplier details in the supplier list
 
 **How it works:**
-- The `suppliers` route loads supplier data from `data/suppliers.json`.
+- The `suppliers` route loads supplier data from Firebase Firestore.
 - `templates/suppliers.html` provides a searchable table and modal form for add/edit.
 - The API endpoints `/api/suppliers` and `/api/suppliers/<sid>` handle create, update, and delete actions.
 
@@ -50,7 +90,7 @@ This module is implemented and functional in the current code.
 - Track order status as Pending, Approved, Delivered, or Cancelled
 
 **How it works:**
-- The `orders` route loads data from `data/orders.json` and supplier names from `data/suppliers.json`.
+- The `orders` route loads data from Firebase Firestore.
 - `templates/purchase_orders.html` provides a creation modal, order table, search, and status update interface.
 - The API endpoints `/api/orders` and `/api/orders/<po_number>` handle order creation and updating.
 
@@ -79,7 +119,7 @@ This module is implemented and functional in the current code.
 - View payment history and status in a searchable table
 
 **How it works:**
-- The `payments` route loads data from `data/payments.json` and existing purchase orders from `data/orders.json`.
+- The `payments` route loads data from Firebase Firestore.
 - `templates/payments.html` provides a payment-record modal, order selection, auto-fill supplier/total amount, and status editing.
 - The API endpoints `/api/payments` and `/api/payments/<payment_id>` handle payment create and status updates.
 
@@ -94,35 +134,89 @@ This module is implemented and functional in the current code.
 - Excludes cancelled orders from the main purchase order report table
 
 **How it works:**
-- The `reports` route loads orders, payments, suppliers, and feedback data.
+- The `reports` route loads orders, payments, suppliers, and feedback data from Firebase Firestore.
 - `templates/reports.html` renders a report table and summary metrics derived from current order data.
 
-## Usage
+## Running the Application
 
-1. Run the app:
+1. Make sure your virtual environment is activated (see Installation section).
+
+2. Start the Flask application:
 
    ```powershell
    python app.py
    ```
 
-2. Open this URL in your browser:
+3. Open your browser and navigate to:
 
    ```text
-   http://127.0.0.1:5000
+   http://localhost:5000
    ```
 
-3. Login with demo credentials or add new users manually in `data/users.json`.
+4. Log in using one of the default accounts listed above.
 
-4. Use the navigation menu to access:
-   - Suppliers
-   - Purchase Orders
-   - Payments
-   - Reports
+5. Use the navigation menu to access different modules:
+   - **Suppliers** - Manage supplier information
+   - **Purchase Orders** - Create and track orders
+   - **Payments** - Record and track supplier payments
+   - **Reports** - View analytics and summaries
+   - **Users** - Manage user accounts (Admin only)
+   - **Settings** - Configure system settings
 
-## Notes
+## Project Structure
 
-- Data is stored in JSON files under `data/`.
-- The current code does not include a dedicated product/item master module; product details are entered directly on purchase orders.
-- Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
+```
+Spoms/
+├── app.py                 # Main Flask application
+├── config.py             # Configuration settings
+├── firebase_config.py    # Firebase Firestore configuration
+├── firebase-key.json     # Firebase service account credentials
+├── setup_firestore.py    # Firestore initialization script
+├── requirements.txt      # Python dependencies
+├── static/              # Static files (CSS, JS, images)
+│   ├── css/
+│   ├── images/
+│   └── js/
+└── templates/           # HTML templates
+```
 
+## Technical Notes
+
+### Data Storage
+- All application data is stored in Firebase Firestore
+- Data is synced in real-time across all application instances
+- Requires valid Firebase credentials (`firebase-key.json`) to initialize
+
+### Architecture
+- **Backend:** Flask web framework (Python)
+- **Frontend:** HTML5, CSS3, JavaScript with responsive design
+- **Data Layer:** Firebase Firestore (NoSQL database)
+- **Authentication:** Username/password authentication stored in Firebase Firestore
+
+### Current Limitations
+- No product/item master module; products are entered directly on purchase orders
+- Delivery and receiving are managed through order status updates rather than a dedicated workflow
+- Authentication uses basic username/password (no encryption); for production, implement secure authentication
+- Single-threaded; not optimized for concurrent users
+
+
+
+## Troubleshooting
+
+**Port 5000 already in use:**
+```powershell
+python app.py --port 5001
+```
+
+**Firebase connection issues:**
+- Verify `firebase-key.json` exists and is valid
+- Check Firebase project credentials in `firebase_config.py`
+- Ensure your Firebase project has Firestore enabled
+
+## Deployment
+
+The system is deployed in vercel. Just copy the domain sir.
+ ```text
+   spom-system.vercel.app
+   ```
 
