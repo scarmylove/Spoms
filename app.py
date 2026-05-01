@@ -7,8 +7,14 @@ from datetime import datetime, timedelta
 import hashlib
 
 app = Flask(__name__)
-app.secret_key = 'spoms-secret-2026'
+app.secret_key = os.environ.get('FLASK_SECRET_KEY') or 'spoms-secret-2026'
 
+# Session configuration - using cookies instead of filesystem for Vercel
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.permanent_session_lifetime = timedelta(hours=24)
+
+# Ensure data directory exists
 os.makedirs('data', exist_ok=True)
 os.makedirs('static/images', exist_ok=True)
 
@@ -83,6 +89,28 @@ def normalize_user_passwords(users):
             changed = True
     return changed
 
+
+def initialize_default_data():
+    """Initialize default data files if they don't exist"""
+    # Default users
+    if not os.path.exists('data/users.json') or os.path.getsize('data/users.json') == 0:
+        default_users = [
+            {'user_id': 'U01', 'name': 'Dennis Lopez', 'username': 'dennis', 'password': hash_pwd('lopez'), 'role': 'Administrator', 'status': 'Active'},
+            {'user_id': 'U02', 'name': 'John Lester Poquita', 'username': 'jani', 'password': hash_pwd('jani'), 'role': 'Purchasing Officer', 'status': 'Active'},
+            {'user_id': 'U03', 'name': 'Angel Rose Cepe', 'username': 'angel', 'password': hash_pwd('angel'), 'role': 'Finance Officer', 'status': 'Active'},
+            {'user_id': 'U04', 'name': 'Jennifer Urboda', 'username': 'jennifer', 'password': hash_pwd('jennifer'), 'role': 'Store Owner', 'status': 'Active'}
+        ]
+        save_json('users.json', default_users)
+    
+    # Ensure other files exist
+    for filename in ['suppliers.json', 'orders.json', 'payments.json', 'feedback.json']:
+        fp = os.path.join('data', filename)
+        if not os.path.exists(fp):
+            save_json(filename, [])
+    
+    # Initialize settings
+    if not os.path.exists('data/settings.json'):
+        save_json('settings.json', default_settings())
 
 
 # ===== DECORATORS =====
@@ -464,4 +492,8 @@ def profile():
     return render_template('profile.html', user=user, message=message)
 
 if __name__ == '__main__':
+    initialize_default_data()
     app.run(debug=True)
+
+# Initialize data on startup (for Vercel)
+initialize_default_data()

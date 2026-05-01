@@ -1,11 +1,13 @@
-[{
+[
+    {
         "user_id": "U001",
         "name": "Dennis Lopez Jr",
         "username": "dennis",
         "password": "0e66633604475ead7445c5e5f987d6450c23687eccf37665e3924541a7f8f6b3",
         "role": "Administrator",
         "email": "dennis@spoms.com",
-        "status": "Active"
+        "status": "Active",
+        "profile_picture": "images/profile-U001-1777612098.jpeg"
     },
     {
         "user_id": "U002",
@@ -14,7 +16,8 @@
         "password": "dd8a3af07bf0ed457e80ebfa07a8d2a7d834bb30aaee2cbf97d3b6120e6238b8",
         "role": "Purchasing Officer",
         "email": "jani@spoms.com",
-        "status": "Active"
+        "status": "Active",
+        "profile_picture": "images/profile-U002-1777612152.jpeg"
     },
     {
         "user_id": "U003",
@@ -23,7 +26,8 @@
         "password": "519ba91a5a5b4afb9dc66f8805ce8c442b6576316c19c6896af2fa9bda6aff71",
         "role": "Finance Officer",
         "email": "angel@spoms.com",
-        "status": "Active"
+        "status": "Active",
+        "profile_picture": "images/profile-U003-1777612183.jpg"
     },
     {
         "user_id": "U004",
@@ -32,6 +36,7 @@
         "password": "9ce8db922a8f4a7abd859adee70bd8b7a63321265487da54cf4bed6a69eb3e1b",
         "role": "Store Owner",
         "email": "jennifer@spoms.com",
-        "status": "Active"
+        "status": "Active",
+        "profile_picture": "images/profile-U004-1777612243.jpeg"
     }
 ]

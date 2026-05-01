@@ -125,4 +125,4 @@ This module is implemented and functional in the current code.
 - The current code does not include a dedicated product/item master module; product details are entered directly on purchase orders.
 - Delivery and receiving are managed through order status updates rather than a separate delivery workflow.
 
-Currently developing the live web.
+
