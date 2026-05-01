@@ -14,7 +14,6 @@ def hash_pwd(pwd):
 def initialize_firestore():
     """Initialize Firestore with default data"""
     
-    # Initialize Firebase
     if not firebase_admin._apps:
         firebase_key = os.environ.get('FIREBASE_KEY')
         if firebase_key:
@@ -25,7 +24,6 @@ def initialize_firestore():
     
     db = firestore.client()
     
-    # Default users
     default_users = [
         {
             'user_id': 'U001',
@@ -66,16 +64,25 @@ def initialize_firestore():
             'email': 'jennifer@spoms.com',
             'status': 'Active',
             'profile_picture': 'images/profile-U004-1777612243.jpeg'
+        },
+        {
+            'user_id': 'U005',
+            'name': 'Dr. Rey Anthoy Godmalin',
+            'username': 'reyGodmalin',
+            'password': '$2a$12$rCGuWd8LTnryuBuuPIqWse8U5oAS0n2Zf.n63INSy3QOZg/LfCf3.',
+            'role': 'Administrator',
+            'email': 'rey@spoms.com',
+            'status': 'Active',
+            'profile_picture': 'images/reyGod.png'
         }
     ]
     
-    # Add default users
     print("Adding default users...")
     for user in default_users:
         db.collection('users').document(user['user_id']).set(user)
         print(f"  ✓ Created user: {user['name']} ({user['username']})")
     
-    # Default settings
+    # orig nga set..
     default_settings = {
         'system_name': 'SPOMS',
         'logo': 'images/logo.png',
@@ -86,11 +93,12 @@ def initialize_firestore():
     db.collection('settings').document('config').set(default_settings)
     print("  ✓ Settings initialized")
     
-    # Empty collections
+
     empty_collections = ['suppliers', 'orders', 'payments', 'feedback']
     print("Initializing empty collections...")
     for collection in empty_collections:
-        # Just ensure they exist by checking
+        
+        # i print sa terminal kung na add naba sa firebase
         docs = db.collection(collection).stream()
         print(f"  ✓ Collection '{collection}' ready")
     
@@ -100,6 +108,7 @@ def initialize_firestore():
     print("  Username: jani     | Role: Purchasing Officer")
     print("  Username: angel    | Role: Finance Officer")
     print("  Username: jennifer | Role: Store Owner")
+    print("apil na si sir")
 
 if __name__ == '__main__':
     initialize_firestore()
