@@ -28,36 +28,44 @@ def initialize_firestore():
     # Default users
     default_users = [
         {
-            'user_id': 'U01',
-            'name': 'Dennis Lopez',
+            'user_id': 'U001',
+            'name': 'Dennis Lopez Jr',
             'username': 'dennis',
-            'password': hash_pwd('lopez'),
+            'password': '0e66633604475ead7445c5e5f987d6450c23687eccf37665e3924541a7f8f6b3',
             'role': 'Administrator',
-            'status': 'Active'
+            'email': 'dennis@spoms.com',
+            'status': 'Active',
+            'profile_picture': 'images/profile-U001-1777612098.jpeg'
         },
         {
-            'user_id': 'U02',
-            'name': 'John Lester Poquita',
+            'user_id': 'U002',
+            'name': 'Jani',
             'username': 'jani',
-            'password': hash_pwd('jani'),
+            'password': 'dd8a3af07bf0ed457e80ebfa07a8d2a7d834bb30aaee2cbf97d3b6120e6238b8',
             'role': 'Purchasing Officer',
-            'status': 'Active'
+            'email': 'jani@spoms.com',
+            'status': 'Active',
+            'profile_picture': 'images/profile-U002-1777612152.jpeg'
         },
         {
-            'user_id': 'U03',
+            'user_id': 'U003',
             'name': 'Angel Rose Cepe',
             'username': 'angel',
-            'password': hash_pwd('angel'),
+            'password': '519ba91a5a5b4afb9dc66f8805ce8c442b6576316c19c6896af2fa9bda6aff71',
             'role': 'Finance Officer',
-            'status': 'Active'
+            'email': 'angel@spoms.com',
+            'status': 'Active',
+            'profile_picture': 'images/profile-U003-1777612183.jpg'
         },
         {
-            'user_id': 'U04',
+            'user_id': 'U004',
             'name': 'Jennifer Urboda',
             'username': 'jennifer',
-            'password': hash_pwd('jennifer'),
+            'password': '9ce8db922a8f4a7abd859adee70bd8b7a63321265487da54cf4bed6a69eb3e1b',
             'role': 'Store Owner',
-            'status': 'Active'
+            'email': 'jennifer@spoms.com',
+            'status': 'Active',
+            'profile_picture': 'images/profile-U004-1777612243.jpeg'
         }
     ]
     
@@ -88,10 +96,10 @@ def initialize_firestore():
     
     print("\n✅ Firestore initialization complete!")
     print("\nDefault login credentials:")
-    print("  Username: dennis  | Password: lopez    | Role: Administrator")
-    print("  Username: jani    | Password: jani     | Role: Purchasing Officer")
-    print("  Username: angel   | Password: angel    | Role: Finance Officer")
-    print("  Username: jennifer| Password: jennifer | Role: Store Owner")
+    print("  Username: dennis   | Role: Administrator")
+    print("  Username: jani     | Role: Purchasing Officer")
+    print("  Username: angel    | Role: Finance Officer")
+    print("  Username: jennifer | Role: Store Owner")
 
 if __name__ == '__main__':
     initialize_firestore()
