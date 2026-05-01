@@ -5,3 +5,11 @@ __pycache__/
 .DS_Store
 .vercel/
 *.pyc
+
+# Firebase credentials - DO NOT COMMIT
+firebase-key.json
+firebase-key.py
+
+# Virtual environment
+.venv/
+venv/

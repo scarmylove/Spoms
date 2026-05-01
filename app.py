@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from functools import wraps
 from werkzeug.utils import secure_filename
-import json
 import os
+import json
 from datetime import datetime, timedelta
 import hashlib
+from firebase_admin import credentials, firestore
+import firebase_admin
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY') or 'spoms-secret-2026'
@@ -14,25 +16,109 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.permanent_session_lifetime = timedelta(hours=24)
 
-# Ensure data directory exists
-os.makedirs('data', exist_ok=True)
+# Initialize Firebase
+if not firebase_admin._apps:
+    # Check if running on Vercel (FIREBASE_KEY env var) or locally (firebase-key.json)
+    firebase_key = os.environ.get('FIREBASE_KEY')
+    if firebase_key:
+        # Vercel deployment: use environment variable
+        cred = credentials.Certificate(json.loads(firebase_key))
+    else:
+        # Local development: use firebase-key.json
+        cred = credentials.Certificate("firebase-key.json")
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+# Ensure static/images directory exists
 os.makedirs('static/images', exist_ok=True)
 
 
-def load_json(f):
-    fp = os.path.join('data', f)
-    if os.path.exists(fp):
-        with open(fp) as file:
-            data = json.load(file)
-        if f == 'users.json' and isinstance(data, list):
-            if normalize_user_passwords(data):
-                save_json(f, data)
-        return data
-    return []
+# ===== FIREBASE HELPER FUNCTIONS =====
+def get_collection_data(collection_name):
+    """Get all documents from a collection as a list"""
+    try:
+        docs = db.collection(collection_name).stream()
+        return [doc.to_dict() for doc in docs]
+    except Exception as e:
+        print(f"Error getting {collection_name}: {e}")
+        return []
 
-def save_json(f, d):
-    with open(os.path.join('data', f), 'w') as file:
-        json.dump(d, file, indent=4)
+
+def add_to_collection(collection_name, data):
+    """Add a document to a collection"""
+    try:
+        db.collection(collection_name).add(data)
+        return True
+    except Exception as e:
+        print(f"Error adding to {collection_name}: {e}")
+        return False
+
+
+def update_collection_doc(collection_name, doc_id, data):
+    """Update a specific document in a collection"""
+    try:
+        db.collection(collection_name).document(doc_id).update(data)
+        return True
+    except Exception as e:
+        print(f"Error updating {collection_name}: {e}")
+        return False
+
+
+def delete_from_collection(collection_name, doc_id):
+    """Delete a document from a collection"""
+    try:
+        db.collection(collection_name).document(doc_id).delete()
+        return True
+    except Exception as e:
+        print(f"Error deleting from {collection_name}: {e}")
+        return False
+
+
+def get_document(collection_name, doc_id):
+    """Get a specific document from a collection"""
+    try:
+        doc = db.collection(collection_name).document(doc_id).get()
+        return doc.to_dict() if doc.exists else None
+    except Exception as e:
+        print(f"Error getting document from {collection_name}: {e}")
+        return None
+
+
+def get_settings():
+    """Get system settings from Firestore"""
+    try:
+        doc = db.collection('settings').document('config').get()
+        if doc.exists:
+            return doc.to_dict()
+        return default_settings()
+    except Exception as e:
+        print(f"Error getting settings: {e}")
+        return default_settings()
+
+
+def save_settings(settings):
+    """Save system settings to Firestore"""
+    try:
+        db.collection('settings').document('config').set(settings)
+        return True
+    except Exception as e:
+        print(f"Error saving settings: {e}")
+        return False
+
+
+def get_current_user():
+    """Get current user from session and Firestore"""
+    if 'user' in session:
+        try:
+            users = db.collection('users').where('name', '==', session['user']).stream()
+            user = next((doc.to_dict() for doc in users), None)
+            return user
+        except Exception as e:
+            print(f"Error getting current user: {e}")
+            return None
+    return None
+
 
 def hash_pwd(pwd):
     return hashlib.sha256(pwd.encode()).hexdigest()
@@ -42,75 +128,22 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'svg'}
 
 
+@app.context_processor
+def inject_settings():
+    return {'settings': get_settings()}
+
+
+@app.context_processor
+def inject_current_user():
+    return {'current_user': get_current_user()}
+
+
 def default_settings():
     return {
         'system_name': 'SPOMS',
         'logo': 'images/spoms.png',
         'homepage_background': 'images/spoms.png'
     }
-
-
-def load_settings():
-    settings = load_json('settings.json')
-    if not isinstance(settings, dict) or not settings:
-        settings = default_settings()
-        save_json('settings.json', settings)
-    return settings
-
-
-def save_settings(settings):
-    save_json('settings.json', settings)
-
-
-@app.context_processor
-def inject_settings():
-    return {'settings': load_settings()}
-
-
-@app.context_processor
-def inject_current_user():
-    if 'user' in session:
-        users = load_json('users.json')
-        user = next((u for u in users if u['name'] == session['user']), None)
-        return {'current_user': user}
-    return {'current_user': None}
-
-
-def is_hashed_password(pwd):
-    return isinstance(pwd, str) and len(pwd) == 64 and all(c in '0123456789abcdef' for c in pwd)
-
-
-def normalize_user_passwords(users):
-    changed = False
-    for u in users:
-        pwd = u.get('password', '')
-        if pwd and not is_hashed_password(pwd):
-            u['password'] = hash_pwd(pwd)
-            changed = True
-    return changed
-
-
-def initialize_default_data():
-    """Initialize default data files if they don't exist"""
-    # Default users
-    if not os.path.exists('data/users.json') or os.path.getsize('data/users.json') == 0:
-        default_users = [
-            {'user_id': 'U01', 'name': 'Dennis Lopez', 'username': 'dennis', 'password': hash_pwd('lopez'), 'role': 'Administrator', 'status': 'Active'},
-            {'user_id': 'U02', 'name': 'John Lester Poquita', 'username': 'jani', 'password': hash_pwd('jani'), 'role': 'Purchasing Officer', 'status': 'Active'},
-            {'user_id': 'U03', 'name': 'Angel Rose Cepe', 'username': 'angel', 'password': hash_pwd('angel'), 'role': 'Finance Officer', 'status': 'Active'},
-            {'user_id': 'U04', 'name': 'Jennifer Urboda', 'username': 'jennifer', 'password': hash_pwd('jennifer'), 'role': 'Store Owner', 'status': 'Active'}
-        ]
-        save_json('users.json', default_users)
-    
-    # Ensure other files exist
-    for filename in ['suppliers.json', 'orders.json', 'payments.json', 'feedback.json']:
-        fp = os.path.join('data', filename)
-        if not os.path.exists(fp):
-            save_json(filename, [])
-    
-    # Initialize settings
-    if not os.path.exists('data/settings.json'):
-        save_json('settings.json', default_settings())
 
 
 # ===== DECORATORS =====
@@ -133,21 +166,18 @@ def feedback():
 def api_feedback():
     if request.method == 'POST':
         data = request.json
-
-        feedbacks = load_json('feedback.json')
-
-        feedbacks.append({
-            "name": data['name'],
-            "message": data['message'],
-            "rating": data['rating'],
+        feedback_data = {
+            "name": data.get('name'),
+            "message": data.get('message'),
+            "rating": data.get('rating'),
             "date": datetime.now().strftime("%Y-%m-%d %H:%M")
-        })
+        }
+        if add_to_collection('feedback', feedback_data):
+            return jsonify({"success": True})
+        return jsonify({"success": False, "error": "Failed to save feedback"}), 500
 
-        save_json('feedback.json', feedbacks)
-
-        return jsonify({"success": True})
-
-    return jsonify(load_json('feedback.json'))
+    feedbacks = get_collection_data('feedback')
+    return jsonify(feedbacks)
 
 def role_check(roles):
     def decorator(f):
@@ -174,11 +204,11 @@ def login():
     if request.method == 'POST':
         user = request.form['username']
         pwd = request.form['password']
-        users = load_json('users.json')
-        u = next((x for x in users if x['username'] == user), None)
-        if u and u['password'] == hash_pwd(pwd):
-            session['user'] = u['name']
-            session['role'] = u['role']
+        users = get_collection_data('users')
+        u = next((x for x in users if x.get('username') == user), None)
+        if u and u.get('password') == hash_pwd(pwd):
+            session['user'] = u.get('name')
+            session['role'] = u.get('role')
             return redirect(url_for('dashboard'))
         return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
@@ -191,15 +221,15 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    suppliers = load_json('suppliers.json')
-    orders = load_json('orders.json')
-    payments = load_json('payments.json')
+    suppliers = get_collection_data('suppliers')
+    orders = get_collection_data('orders')
+    payments = get_collection_data('payments')
     
     stats = {
         'suppliers': len(suppliers),
         'orders': len(orders),
-        'pending': len([o for o in orders if o['status'] == 'Pending']),
-        'completed': len([o for o in orders if o['status'] == 'Delivered']),
+        'pending': len([o for o in orders if o.get('status') == 'Pending']),
+        'completed': len([o for o in orders if o.get('status') == 'Delivered']),
         'payments': len(payments)
     }
     return render_template('dashboard.html', stats=stats, role=session['role'])
@@ -209,46 +239,48 @@ def dashboard():
 def suppliers():
     if session['role'] not in ['Administrator', 'Purchasing Officer', 'Store Owner']:
         return render_template('403.html'), 403
-    data = load_json('suppliers.json')
+    data = get_collection_data('suppliers')
     return render_template('suppliers.html', suppliers=data, role=session['role'])
 
 @app.route('/api/suppliers', methods=['GET', 'POST'])
 @login_required
 def api_suppliers():
     if request.method == 'POST':
-        if session['role'] not in ['Administrator', 'Store Owner']:
-            return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-        data = request.json
-        suppliers = load_json('suppliers.json')
-        suppliers.append(data)
-        save_json('suppliers.json', suppliers)
-        return jsonify({'success': True})
-    return jsonify(load_json('suppliers.json'))
+        try:
+            if session.get('role') not in ['Administrator', 'Store Owner']:
+                return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+            data = request.get_json()
+            if not data:
+                return jsonify({'success': False, 'error': 'No data provided'}), 400
+            if add_to_collection('suppliers', data):
+                return jsonify({'success': True})
+            return jsonify({'success': False, 'error': 'Failed to save supplier'}), 500
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+    suppliers = get_collection_data('suppliers')
+    return jsonify(suppliers)
 
 @app.route('/api/suppliers/<sid>', methods=['DELETE', 'PUT'])
 @login_required
 @role_check(['Administrator', 'Store Owner'])
 def api_supplier(sid):
-    suppliers = load_json('suppliers.json')
     if request.method == 'DELETE':
-        suppliers = [s for s in suppliers if s['id'] != sid]
-        save_json('suppliers.json', suppliers)
-        return jsonify({'success': True})
+        if delete_from_collection('suppliers', sid):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to delete supplier'}), 500
     elif request.method == 'PUT':
         data = request.json
-        s = next((x for x in suppliers if x['id'] == sid), None)
-        if s:
-            s.update(data)
-            save_json('suppliers.json', suppliers)
-        return jsonify({'success': True})
+        if update_collection_doc('suppliers', sid, data):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to update supplier'}), 500
 
 @app.route('/orders')
 @login_required
 def orders():
     if session['role'] not in ['Administrator', 'Purchasing Officer', 'Finance Officer']:
         return render_template('403.html'), 403
-    data = load_json('orders.json')
-    suppliers = load_json('suppliers.json')
+    data = get_collection_data('orders')
+    suppliers = get_collection_data('suppliers')
     return render_template('purchase_orders.html', orders=data, suppliers=suppliers, role=session['role'])
 
 @app.route('/api/orders', methods=['GET', 'POST'])
@@ -256,11 +288,11 @@ def orders():
 def api_orders():
     if request.method == 'POST':
         data = request.json
-        orders = load_json('orders.json')
-        orders.append(data)
-        save_json('orders.json', orders)
-        return jsonify({'success': True})
-    return jsonify(load_json('orders.json'))
+        if add_to_collection('orders', data):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to create order'}), 500
+    orders = get_collection_data('orders')
+    return jsonify(orders)
 
 @app.route('/api/orders/<po_number>', methods=['PUT'])
 @login_required
@@ -269,20 +301,16 @@ def update_order(po_number):
         return jsonify({'error': 'Unauthorized'}), 403
     
     data = request.json
-    orders = load_json('orders.json')
-    for order in orders:
-        if str(order.get('po')) == po_number:
-            order.update(data)
-            save_json('orders.json', orders)
-            return jsonify({'success': True})
+    if update_collection_doc('orders', po_number, data):
+        return jsonify({'success': True})
     return jsonify({'error': 'Order not found'}), 404
 
 @app.route('/payments')
 @login_required
 @role_check(['Finance Officer', 'Administrator'])
 def payments():
-    data = load_json('payments.json')
-    orders = load_json('orders.json')
+    data = get_collection_data('payments')
+    orders = get_collection_data('orders')
     return render_template('payments.html', payments=data, orders=orders, user_role=session.get('role'))
 
 @app.route('/api/payments', methods=['GET', 'POST'])
@@ -290,11 +318,11 @@ def payments():
 def api_payments():
     if request.method == 'POST':
         data = request.json
-        payments = load_json('payments.json')
-        payments.append(data)
-        save_json('payments.json', payments)
-        return jsonify({'success': True})
-    return jsonify(load_json('payments.json'))
+        if add_to_collection('payments', data):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to create payment'}), 500
+    payments = get_collection_data('payments')
+    return jsonify(payments)
 
 @app.route('/api/payments/<payment_id>', methods=['PUT'])
 @login_required
@@ -303,43 +331,39 @@ def update_payment(payment_id):
         return jsonify({'error': 'Unauthorized'}), 403
     
     data = request.json
-    payments = load_json('payments.json')
-    for payment in payments:
-        if payment['id'] == payment_id:
-            payment.update(data)
-            save_json('payments.json', payments)
-            return jsonify({'success': True})
+    if update_collection_doc('payments', payment_id, data):
+        return jsonify({'success': True})
     return jsonify({'error': 'Payment not found'}), 404
 
 @app.route('/backup')
 @login_required
 def backup():
-    suppliers = load_json('suppliers.json')
-    orders = load_json('orders.json')
-    payments = load_json('payments.json')
+    suppliers = get_collection_data('suppliers')
+    orders = get_collection_data('orders')
+    payments = get_collection_data('payments')
     
     return render_template('backup.html', 
         suppliers_count=len(suppliers),
         orders_count=len(orders),
-        orders_value=sum(o['total'] for o in orders),
+        orders_value=sum(o.get('total', 0) for o in orders),
         payments_count=len(payments),
-        payments_total=sum(p['amount'] for p in payments)
+        payments_total=sum(p.get('amount', 0) for p in payments)
     )
 
 @app.route('/reports')
 @login_required
 def reports():
-    suppliers = load_json('suppliers.json')
-    orders = load_json('orders.json')
-    payments = load_json('payments.json')
-    feedbacks = load_json('feedback.json')
+    suppliers = get_collection_data('suppliers')
+    orders = get_collection_data('orders')
+    payments = get_collection_data('payments')
+    feedbacks = get_collection_data('feedback')
     
     return render_template('reports.html', 
         suppliers_count=len(suppliers),
         orders_count=len(orders),
-        orders_value=sum(o['total'] for o in orders),
+        orders_value=sum(o.get('total', 0) for o in orders),
         payments_count=len(payments),
-        payments_total=sum(p['amount'] for p in payments),
+        payments_total=sum(p.get('amount', 0) for p in payments),
         orders=orders,
         feedbacks=feedbacks
     )
@@ -347,25 +371,25 @@ def reports():
 @app.route('/api/chart/orders')
 @login_required
 def chart_orders():
-    orders = load_json('orders.json')
+    orders = get_collection_data('orders')
     statuses = ['Pending', 'Approved', 'Delivered']
-    data = [len([o for o in orders if o['status'] == s]) for s in statuses]
+    data = [len([o for o in orders if o.get('status') == s]) for s in statuses]
     return jsonify({'labels': statuses, 'data': data, 'colors': ['#f59e0b', '#3b82f6', '#10b981']})
 
 @app.route('/api/chart/suppliers')
 @login_required
 def chart_suppliers():
-    suppliers = load_json('suppliers.json')
-    orders = load_json('orders.json')
-    labels = [s['name'] for s in suppliers]
-    data = [len([o for o in orders if o['supplier'] == s['name']]) for s in suppliers]
+    suppliers = get_collection_data('suppliers')
+    orders = get_collection_data('orders')
+    labels = [s.get('name', '') for s in suppliers]
+    data = [len([o for o in orders if o.get('supplier') == s.get('name')]) for s in suppliers]
     return jsonify({'labels': labels, 'data': data, 'colors': ['#2563eb', '#dc2626', '#16a34a']})
 
 @app.route('/users')
 @login_required
 @role_check(['Administrator'])
 def users():
-    data = load_json('users.json')
+    data = get_collection_data('users')
     for u in data:
         u.pop('password', None)
     return render_template('users.html', users=data)
@@ -374,42 +398,43 @@ def users():
 @login_required
 @role_check(['Administrator'])
 def api_users():
-    users = load_json('users.json')
+    users_list = get_collection_data('users')
     if request.method == 'POST':
         data = request.json
         if not data.get('username') or not data.get('password') or not data.get('name') or not data.get('role'):
             return jsonify({'success': False, 'error': 'Missing user data'}), 400
-        if any(u['username'].lower() == data['username'].lower() for u in users):
+        if any(u.get('username', '').lower() == data['username'].lower() for u in users_list):
             return jsonify({'success': False, 'error': 'Username already exists'}), 400
         data['password'] = hash_pwd(data['password'])
-        existing_ids = [int(u['user_id'][1:]) for u in users if u.get('user_id', '').startswith('U') and u['user_id'][1:].isdigit()]
+        existing_ids = [int(u.get('user_id', 'U0')[1:]) for u in users_list if u.get('user_id', '').startswith('U') and u.get('user_id', 'U0')[1:].isdigit()]
         next_id = max(existing_ids, default=0) + 1
         data['user_id'] = f'U{next_id:02d}'
         data['status'] = data.get('status', 'Active')
-        users.append(data)
-        save_json('users.json', users)
-        return jsonify({'success': True, 'user': {'user_id': data['user_id'], 'name': data['name'], 'username': data['username'], 'role': data['role'], 'status': data['status']}})
-    for u in users:
+        if add_to_collection('users', data):
+            return jsonify({'success': True, 'user': {'user_id': data['user_id'], 'name': data['name'], 'username': data['username'], 'role': data['role'], 'status': data['status']}})
+        return jsonify({'success': False, 'error': 'Failed to create user'}), 500
+    
+    for u in users_list:
         u.pop('password', None)
-    return jsonify(users)
+    return jsonify(users_list)
 
 @app.route('/api/users/<uid>', methods=['PUT', 'DELETE'])
 @login_required
 @role_check(['Administrator'])
 def api_user(uid):
-    users = load_json('users.json')
-    user = next((u for u in users if u.get('user_id') == uid), None)
+    users_list = get_collection_data('users')
+    user = next((u for u in users_list if u.get('user_id') == uid), None)
     if not user:
         return jsonify({'success': False, 'error': 'User not found'}), 404
 
     if request.method == 'DELETE':
-        users = [u for u in users if u.get('user_id') != uid]
-        save_json('users.json', users)
-        return jsonify({'success': True})
+        if delete_from_collection('users', uid):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to delete user'}), 500
 
     data = request.json or {}
-    if data.get('username') and data['username'].lower() != user['username'].lower():
-        if any(u['username'].lower() == data['username'].lower() for u in users if u.get('user_id') != uid):
+    if data.get('username') and data['username'].lower() != user.get('username', '').lower():
+        if any(u.get('username', '').lower() == data['username'].lower() for u in users_list if u.get('user_id') != uid):
             return jsonify({'success': False, 'error': 'Username already exists'}), 400
     if data.get('name'):
         user['name'] = data['name']
@@ -422,18 +447,19 @@ def api_user(uid):
     if data.get('password'):
         user['password'] = hash_pwd(data['password'])
 
-    save_json('users.json', users)
-    return jsonify({'success': True, 'user': {'user_id': user['user_id'], 'name': user['name'], 'username': user['username'], 'role': user['role'], 'status': user['status']}})
+    if update_collection_doc('users', uid, user):
+        return jsonify({'success': True, 'user': {'user_id': user['user_id'], 'name': user['name'], 'username': user['username'], 'role': user['role'], 'status': user['status']}})
+    return jsonify({'success': False, 'error': 'Failed to update user'}), 500
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 @role_check(['Administrator'])
 def settings():
-    settings = load_settings()
+    settings_data = get_settings()
     message = None
     if request.method == 'POST':
-        system_name = request.form.get('system_name', settings['system_name']).strip()
-        settings['system_name'] = system_name or settings['system_name']
+        system_name = request.form.get('system_name', settings_data['system_name']).strip()
+        settings_data['system_name'] = system_name or settings_data['system_name']
 
         if 'logo' in request.files:
             logo_file = request.files['logo']
@@ -441,7 +467,7 @@ def settings():
                 filename = secure_filename(logo_file.filename)
                 logo_path = f'images/site-logo-{int(datetime.now().timestamp())}.{filename.rsplit(".", 1)[1].lower()}'
                 logo_file.save(os.path.join('static', logo_path))
-                settings['logo'] = logo_path
+                settings_data['logo'] = logo_path
 
         if 'background' in request.files:
             bg_file = request.files['background']
@@ -449,18 +475,18 @@ def settings():
                 filename = secure_filename(bg_file.filename)
                 bg_path = f'images/homepage-bg-{int(datetime.now().timestamp())}.{filename.rsplit(".", 1)[1].lower()}'
                 bg_file.save(os.path.join('static', bg_path))
-                settings['homepage_background'] = bg_path
+                settings_data['homepage_background'] = bg_path
 
-        save_settings(settings)
+        save_settings(settings_data)
         message = 'Settings saved successfully.'
 
-    return render_template('settings.html', settings=settings, message=message)
+    return render_template('settings.html', settings=settings_data, message=message)
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    users = load_json('users.json')
-    user = next((u for u in users if u['name'] == session['user']), None)
+    users_list = get_collection_data('users')
+    user = next((u for u in users_list if u.get('name') == session['user']), None)
     if not user:
         return redirect(url_for('logout'))
     message = None
@@ -470,8 +496,8 @@ def profile():
             user['name'] = data['name'].strip()
             session['user'] = user['name']
         if data.get('username'):
-            if data['username'].lower() != user['username'].lower():
-                if any(u['username'].lower() == data['username'].lower() for u in users if u != user):
+            if data['username'].lower() != user.get('username', '').lower():
+                if any(u.get('username', '').lower() == data['username'].lower() for u in users_list if u != user):
                     message = 'Username already exists'
                 else:
                     user['username'] = data['username'].strip()
@@ -486,14 +512,13 @@ def profile():
                 pic_file.save(os.path.join('static', pic_path))
                 user['profile_picture'] = pic_path
         
-        save_json('users.json', users)
-        if not message:
-            message = 'Profile updated successfully.'
+        user_id = user.get('user_id')
+        if update_collection_doc('users', user_id, user):
+            if not message:
+                message = 'Profile updated successfully.'
+        else:
+            message = 'Error updating profile. Please try again.'
     return render_template('profile.html', user=user, message=message)
 
 if __name__ == '__main__':
-    initialize_default_data()
     app.run(debug=True)
-
-# Initialize data on startup (for Vercel)
-initialize_default_data()
