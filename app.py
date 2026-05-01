@@ -216,13 +216,18 @@ def suppliers():
 @login_required
 def api_suppliers():
     if request.method == 'POST':
-        if session['role'] not in ['Administrator', 'Store Owner']:
-            return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-        data = request.json
-        suppliers = load_json('suppliers.json')
-        suppliers.append(data)
-        save_json('suppliers.json', suppliers)
-        return jsonify({'success': True})
+        try:
+            if session.get('role') not in ['Administrator', 'Store Owner']:
+                return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+            data = request.get_json()
+            if not data:
+                return jsonify({'success': False, 'error': 'No data provided'}), 400
+            suppliers = load_json('suppliers.json')
+            suppliers.append(data)
+            save_json('suppliers.json', suppliers)
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
     return jsonify(load_json('suppliers.json'))
 
 @app.route('/api/suppliers/<sid>', methods=['DELETE', 'PUT'])
